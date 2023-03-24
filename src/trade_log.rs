@@ -111,7 +111,11 @@ async fn write_to_trade_log(inner: Arc<Mutex<TradeLogInner>>) {
             None => {
                 {
                     let write_access = inner.lock().await;
-                    if write_access.stopping {
+
+                    if write_access.stopping
+                        && write_access.get_elements_in_queue() == 0
+                        && write_access.get_items_on_delivery() == 0
+                    {
                         return;
                     }
                 }
