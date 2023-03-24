@@ -5,7 +5,7 @@ Add as a dependency to toml file
 
 ```toml
 
-trade-log = { tag="xxx", git="git@github.com:my-cfd-platform/trade-log.git" }
+trade-log = { tag="xxx", git="https://github.com/my-cfd-platform/trade-log.git" }
 
 ```
 
