@@ -38,14 +38,18 @@ impl TradeLog {
         &self,
         trader_id: impl IntoStringOrStr<'s>,
         account_id: impl IntoStringOrStr<'s>,
-        process_id: impl IntoStringOrStr<'s>,
+        process_id: Option<impl IntoStringOrStr<'s>>,
         message: impl IntoStringOrStr<'s>,
         data: Option<impl serde::Serialize>,
     ) {
         let item = TradeLogSbModel {
             trader_id: trader_id.into_string_or_str().to_string(),
             account_id: account_id.into_string_or_str().to_string(),
-            process_id: process_id.into_string_or_str().to_string(),
+            process_id: if let Some(process_id) = process_id {
+                process_id.into_string_or_str().to_string()
+            } else {
+                "".to_string()
+            },
             message: message.into_string_or_str().to_string(),
             data: if let Some(data) = &data {
                 serde_json::to_string(data).unwrap()
