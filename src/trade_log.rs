@@ -1,12 +1,11 @@
 use std::{collections::HashMap, sync::Arc, time::Duration};
 
-use cfd_engine_sb_contracts::TradeLogSbModel;
 use my_service_bus_abstractions::publisher::MyServiceBusPublisher;
 use my_service_bus_tcp_client::MyServiceBusClient;
 use rust_extensions::{date_time::DateTimeAsMicroseconds, IntoStringOrStr, Logger};
 use tokio::sync::Mutex;
 
-use crate::TradeLogInner;
+use crate::{TradeLogInner, TradeLogSbModel};
 
 pub struct TradeLog {
     inner: Arc<Mutex<TradeLogInner>>,

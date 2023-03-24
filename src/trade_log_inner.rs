@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
-use cfd_engine_sb_contracts::TradeLogSbModel;
 use my_service_bus_abstractions::publisher::MyServiceBusPublisher;
+
+use crate::TradeLogSbModel;
 
 const ITEMS_PER_ROUNDTRIP: usize = 10;
 
