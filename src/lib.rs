@@ -3,7 +3,7 @@ mod my_sb_entity;
 mod trade_log;
 #[cfg(not(feature = "trade-log-writer"))]
 mod trade_log_inner;
-#[cfg(not(feature = "trade-log-writer"))]
+
 pub use my_sb_entity::*;
 #[cfg(not(feature = "trade-log-writer"))]
 use std::sync::Arc;
