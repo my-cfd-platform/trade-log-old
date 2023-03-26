@@ -1,8 +1,9 @@
-use std::{collections::HashMap, sync::Arc, time::Duration};
+use std::{sync::Arc, time::Duration};
 
+use my_logger::LogEventCtx;
 use my_service_bus_abstractions::publisher::MyServiceBusPublisher;
 use my_service_bus_tcp_client::MyServiceBusClient;
-use rust_extensions::{date_time::DateTimeAsMicroseconds, IntoStringOrStr, Logger};
+use rust_extensions::{date_time::DateTimeAsMicroseconds, StrOrString};
 use tokio::sync::Mutex;
 
 use crate::{TradeLogInner, TradeLogSbModel};
@@ -35,21 +36,21 @@ impl TradeLog {
 
     pub async fn write<'s>(
         &self,
-        trader_id: impl IntoStringOrStr<'s>,
-        account_id: impl IntoStringOrStr<'s>,
-        process_id: Option<impl IntoStringOrStr<'s>>,
-        message: impl IntoStringOrStr<'s>,
+        trader_id: impl Into<StrOrString<'s>>,
+        account_id: impl Into<StrOrString<'s>>,
+        process_id: Option<impl Into<StrOrString<'s>>>,
+        message: impl Into<StrOrString<'s>>,
         data: Option<impl serde::Serialize>,
     ) {
         let item = TradeLogSbModel {
-            trader_id: trader_id.into_string_or_str().to_string(),
-            account_id: account_id.into_string_or_str().to_string(),
+            trader_id: trader_id.into().to_string(),
+            account_id: account_id.into().to_string(),
             process_id: if let Some(process_id) = process_id {
-                process_id.into_string_or_str().to_string()
+                process_id.into().to_string()
             } else {
                 "".to_string()
             },
-            message: message.into_string_or_str().to_string(),
+            message: message.into().to_string(),
             data: if let Some(data) = &data {
                 serde_json::to_string(data).unwrap()
             } else {
@@ -149,14 +150,10 @@ async fn deliver_it(
                     }
                 }
 
-                let mut ctx = HashMap::new();
-
-                ctx.insert("accountIds".to_string(), account_ids);
-
                 my_logger::LOGGER.write_error(
                     "Publish TradeLog to Sb".to_string(),
                     format!("{:?}", err),
-                    Some(ctx),
+                    LogEventCtx::new().add("accountIds", account_ids),
                 );
 
                 tokio::time::sleep(Duration::from_secs(1)).await;
