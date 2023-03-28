@@ -10,7 +10,9 @@ pub struct TradeLogSbModel {
     #[prost(string, tag = "4")]
     pub process_id: ::prost::alloc::string::String,
     #[prost(string, tag = "5")]
-    pub message: ::prost::alloc::string::String,
+    pub operation_id: ::prost::alloc::string::String,
     #[prost(string, tag = "6")]
+    pub message: ::prost::alloc::string::String,
+    #[prost(string, tag = "7")]
     pub data: ::prost::alloc::string::String,
 }

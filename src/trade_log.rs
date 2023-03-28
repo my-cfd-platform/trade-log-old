@@ -39,12 +39,14 @@ impl TradeLog {
         trader_id: impl Into<StrOrString<'s>>,
         account_id: impl Into<StrOrString<'s>>,
         process_id: Option<impl Into<StrOrString<'s>>>,
+        operation_id: impl Into<StrOrString<'s>>,
         message: impl Into<StrOrString<'s>>,
         data: Option<impl serde::Serialize>,
     ) {
         let item = TradeLogSbModel {
             trader_id: trader_id.into().to_string(),
             account_id: account_id.into().to_string(),
+            operation_id: operation_id.into().to_string(),
             process_id: if let Some(process_id) = process_id {
                 process_id.into().to_string()
             } else {
