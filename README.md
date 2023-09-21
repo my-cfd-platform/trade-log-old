@@ -30,7 +30,6 @@ trade_log::TRADE_LOG.stop().await;
 Write trade_log at any place of your code
 
 ```rust
-app_ctx.app_states.wait_until_shutdown().await;
 // We put it after wait_until_shutdown()
 trade_log::TRADE_LOG.write(trader_id, account_id, process_id, message, data).await;
 ````
