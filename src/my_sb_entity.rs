@@ -1,5 +1,6 @@
+service_sdk::macros::use_my_sb_entity_protobuf_model!();
 #[derive(Clone, PartialEq, ::prost::Message)]
-#[my_service_bus_macros::my_sb_entity_protobuf_model(topic_id = "trade-log")]
+#[my_sb_entity_protobuf_model(topic_id = "trade-log")]
 pub struct TradeLogSbModel {
     #[prost(int64, tag = "1")]
     pub date_time_unix_micros: i64,

@@ -1,12 +1,14 @@
 use std::{sync::Arc, time::Duration};
 
-use my_logger::LogEventCtx;
-use my_service_bus_abstractions::publisher::MyServiceBusPublisher;
-use my_service_bus_tcp_client::MyServiceBusClient;
-use rust_extensions::{date_time::DateTimeAsMicroseconds, StrOrString};
+use service_sdk::{
+    my_logger::{self, LogEventCtx},
+    my_service_bus::{abstractions::publisher::MyServiceBusPublisher, client::MyServiceBusClient},
+    my_telemetry::MyTelemetryContext,
+    rust_extensions::{date_time::DateTimeAsMicroseconds, StrOrString},
+};
 use tokio::sync::Mutex;
 
-use crate::{TradeLogInner, TradeLogSbModel};
+use crate::{ModelToDeliver, TradeLogInner, TradeLogSbModel};
 
 pub struct TradeLog {
     inner: Arc<Mutex<TradeLogInner>>,
@@ -42,6 +44,7 @@ impl TradeLog {
         operation_id: impl Into<StrOrString<'s>>,
         message: impl Into<StrOrString<'s>>,
         data: Option<impl serde::Serialize>,
+        my_telemetry: MyTelemetryContext,
     ) {
         let item = TradeLogSbModel {
             trader_id: trader_id.into().to_string(),
@@ -66,7 +69,7 @@ impl TradeLog {
             panic!("TradeLog is not started");
         }
 
-        write_access.add(item);
+        write_access.add(item, my_telemetry);
     }
 
     pub async fn stop(&self) {
@@ -130,11 +133,18 @@ async fn write_to_trade_log(inner: Arc<Mutex<TradeLogInner>>) {
 
 async fn deliver_it(
     inner: Arc<Mutex<TradeLogInner>>,
-    to_write: Vec<TradeLogSbModel>,
+    to_write: Vec<ModelToDeliver>,
     publisher: Arc<MyServiceBusPublisher<TradeLogSbModel>>,
 ) {
     loop {
-        match publisher.publish_messages(&to_write).await {
+        match publisher
+            .publish_messages(
+                to_write
+                    .iter()
+                    .map(|itm| (&itm.model, Some(&itm.my_telemetry))),
+            )
+            .await
+        {
             Ok(_) => {
                 let mut write_access = inner.lock().await;
                 write_access.delivered();
@@ -144,7 +154,7 @@ async fn deliver_it(
                 let mut account_ids = String::new();
                 let mut i = 0;
                 for itm in &to_write {
-                    account_ids.push_str(&itm.account_id);
+                    account_ids.push_str(&itm.model.account_id);
                     account_ids.push(';');
                     i += 1;
                     if i >= 10 {

@@ -1,13 +1,21 @@
 use std::sync::Arc;
 
-use my_service_bus_abstractions::publisher::MyServiceBusPublisher;
+use service_sdk::{
+    my_service_bus::abstractions::publisher::MyServiceBusPublisher,
+    my_telemetry::MyTelemetryContext,
+};
 
 use crate::TradeLogSbModel;
 
 const ITEMS_PER_ROUNDTRIP: usize = 10;
 
+pub struct ModelToDeliver {
+    pub model: TradeLogSbModel,
+    pub my_telemetry: MyTelemetryContext,
+}
+
 pub struct TradeLogInner {
-    items: Vec<TradeLogSbModel>,
+    items: Vec<ModelToDeliver>,
     pub sb_publisher: Option<Arc<MyServiceBusPublisher<TradeLogSbModel>>>,
     items_on_delivery: usize,
     pub stopping: bool,
@@ -27,8 +35,11 @@ impl TradeLogInner {
         self.sb_publisher.is_some()
     }
 
-    pub fn add(&mut self, item: TradeLogSbModel) {
-        self.items.push(item);
+    pub fn add(&mut self, item: TradeLogSbModel, my_telemetry: MyTelemetryContext) {
+        self.items.push(ModelToDeliver {
+            model: item,
+            my_telemetry,
+        });
     }
 
     pub fn get_elements_in_queue(&self) -> usize {
@@ -42,7 +53,7 @@ impl TradeLogInner {
     pub fn get_elements_to_deliver(
         &mut self,
     ) -> Option<(
-        Vec<TradeLogSbModel>,
+        Vec<ModelToDeliver>,
         Arc<MyServiceBusPublisher<TradeLogSbModel>>,
     )> {
         if self.items.len() == 0 {
